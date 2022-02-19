@@ -63,7 +63,9 @@ data Bool : Set where
 -}
 
 _⊕_ : Bool → Bool → Bool
-b ⊕ b' = {!!}
+true ⊕ true = false
+true ⊕ false = true
+false ⊕ b' = b'
 
 {-
    You can test whether your definition computes correctly by using
@@ -95,7 +97,7 @@ data ℕ : Set where
 -}
 
 incr : ℕ → ℕ
-incr n = {!!}
+incr n = suc n
 
 {-
    Define a function that decrements a number by one. Give the definition
@@ -103,7 +105,8 @@ incr n = {!!}
 -}
 
 decr : ℕ → ℕ
-decr n = {!!}
+decr zero = zero
+decr (suc n) = n
 
 {-
    Define a function that triples the value of a given number.
@@ -111,7 +114,9 @@ decr n = {!!}
 -}
 
 triple : ℕ → ℕ
-triple n = {!!}
+triple zero = zero
+triple (suc zero) = suc(suc(suc zero))
+triple (suc n) = suc (suc (suc (triple n)))
 
 
 ----------------
@@ -142,7 +147,8 @@ infixl 7  _*_
 -}
 
 _^_ : ℕ → ℕ → ℕ
-m ^ n = {!!}
+m ^ zero = suc zero
+m ^ suc n = m * (m ^ n)
 
 infixl 8  _^_
 
@@ -178,7 +184,9 @@ infixl 20 _I
 -}
 
 b-incr : Bin → Bin
-b-incr b = {!!}
+b-incr ⟨⟩ = ⟨⟩ I
+b-incr (b O) = b I
+b-incr (b I) = (b-incr b) O
 
 
 ----------------
@@ -195,11 +203,16 @@ b-incr b = {!!}
 -}
 
 to : ℕ → Bin
-to n = {!!}
+to zero = ⟨⟩ O
+to (suc n) = b-incr (to n)
 
 from : Bin → ℕ
-from b = {!!}
-
+from b = remove-last-add-power zero zero b
+   where
+   remove-last-add-power : ℕ → ℕ → Bin → ℕ
+   remove-last-add-power acc n ⟨⟩ = acc
+   remove-last-add-power acc n (b O) = remove-last-add-power acc (suc n) b
+   remove-last-add-power acc n (b I) = remove-last-add-power (acc + 2 ^ n) (suc n) b
 
 ----------------
 -- Exercise 6 --
@@ -405,3 +418,4 @@ length-≤-≦ᴸ xs ys p = {!!}
    - "less than or equal" order
    - show that `from` takes even numbers to even numbers
 -}
+ 
