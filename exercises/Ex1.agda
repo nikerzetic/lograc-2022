@@ -232,7 +232,8 @@ data Even : ℕ → Set where
 
 data Even₂ : Bin → Set where
   {- EXERCISE: add the constructors for this inductive predicate here -}
-
+  even-O : Even₂ (⟨⟩ O)
+  even-bO : {b : Bin} → Even₂ b → Even₂ (b-incr (b-incr b))
 
 ----------------
 -- Exercise 7 --
@@ -244,7 +245,8 @@ data Even₂ : Bin → Set where
 -}
 
 to-even : {n : ℕ} → Even n → Even₂ (to n)
-to-even p = {!!}
+to-even even-z = even-O
+to-even (even-ss p) = even-bO (to-even p)
 
 
 ----------------
@@ -266,6 +268,8 @@ to-even p = {!!}
 
 data NonEmptyBin : Bin → Set where
   {- EXERCISE: add the constructors for this inductive predicate here -}
+  non-empty-O : {b : Bin} → NonEmptyBin (b O)
+  non-empty-I : {b : Bin} → NonEmptyBin (b I)
 
 {-
    To verify that `NonEmptyBin ⟨⟩` is indeed not inhabited as intended,
@@ -276,7 +280,7 @@ data NonEmptyBin : Bin → Set where
 data ⊥ : Set where
 
 ⟨⟩-empty : NonEmptyBin ⟨⟩ → ⊥
-⟨⟩-empty p = {!!}
+⟨⟩-empty ()
 
 
 ----------------
@@ -293,8 +297,12 @@ data ⊥ : Set where
 -}
 
 from-ne : (b : Bin) → NonEmptyBin b → ℕ
-from-ne b p = {!!}
-
+from-ne (⟨⟩ O) non-empty-O = 0
+from-ne (⟨⟩ I) non-empty-I = 1
+from-ne (b O O) _ = 2 * (from-ne (b O) non-empty-O)
+from-ne (b O I) _ = 2 * (from-ne (b O) non-empty-O) + 1
+from-ne (b I O) _ = 2 * (from-ne (b I) non-empty-I)
+from-ne (b I I) _ = 2 * (from-ne (b I) non-empty-I) + 1
 
 -----------------
 -- Exercise 10 --
@@ -326,7 +334,8 @@ infixr 5 _∷_
 -}
 
 map : {A B : Set} → (A → B) → List A → List B
-map f xs = {!!}
+map f [] = []
+map f (x ∷ xs) = (f x) ∷ (map f xs)
 
 
 -----------------
@@ -338,7 +347,8 @@ map f xs = {!!}
 -}
 
 length : {A : Set} → List A → ℕ
-length xs = {!!}
+length [] = 0
+length (x ∷ xs) = 1 + length xs
 
 -----------------
 -- Exercise 12 --
@@ -359,7 +369,8 @@ data _≡ᴺ_ : ℕ → ℕ → Set where
 -}
 
 map-≡ᴺ : {A B : Set} {f : A → B} → (xs : List A) → length xs ≡ᴺ length (map f xs)
-map-≡ᴺ xs = {!!}
+map-≡ᴺ [] = z≡ᴺz
+map-≡ᴺ (x ∷ xs) = s≡ᴺs (map-≡ᴺ xs)
 
 
 -----------------
@@ -384,6 +395,7 @@ infix 4 _≤_
 
 data _≤ᴸ_ {A : Set} : List A → List A → Set where
   {- EXERCISE: add the constructors for this inductive relation here -}
+   []≤ᴸL : {L : List A} → [] ≤ᴸ L
 
 infix 4 _≤ᴸ_
 
@@ -418,4 +430,4 @@ length-≤-≦ᴸ xs ys p = {!!}
    - "less than or equal" order
    - show that `from` takes even numbers to even numbers
 -}
- 
+  
