@@ -115,7 +115,6 @@ decr (suc n) = n
 
 triple : ℕ → ℕ
 triple zero = zero
-triple (suc zero) = suc(suc(suc zero))
 triple (suc n) = suc (suc (suc (triple n)))
 
 
@@ -147,7 +146,7 @@ infixl 7  _*_
 -}
 
 _^_ : ℕ → ℕ → ℕ
-m ^ zero = suc zero
+m ^ zero = 1
 m ^ suc n = m * (m ^ n)
 
 infixl 8  _^_
@@ -214,6 +213,12 @@ from b = remove-last-add-power zero zero b
    remove-last-add-power acc n (b O) = remove-last-add-power acc (suc n) b
    remove-last-add-power acc n (b I) = remove-last-add-power (acc + 2 ^ n) (suc n) b
 
+from' : Bin → ℕ
+from' ⟨⟩ = 0
+from' (b O) = 2 * (from' b)
+from' (b I) = 1 + 2 * (from' b)
+
+
 ----------------
 -- Exercise 6 --
 ----------------
@@ -234,6 +239,10 @@ data Even₂ : Bin → Set where
   {- EXERCISE: add the constructors for this inductive predicate here -}
   even-O : Even₂ (⟨⟩ O)
   even-bO : {b : Bin} → Even₂ b → Even₂ (b-incr (b-incr b))
+
+data Even₂' : Bin → Set where
+  even₂'  : {b : Bin} → Even₂' (b O)
+
 
 ----------------
 -- Exercise 7 --
@@ -395,7 +404,8 @@ infix 4 _≤_
 
 data _≤ᴸ_ {A : Set} : List A → List A → Set where
   {- EXERCISE: add the constructors for this inductive relation here -}
-   []≤ᴸL : {L : List A} → [] ≤ᴸ L
+   e≤ᴸys : {L : List A} → [] ≤ᴸ L
+   xs≤ᴸys : {x y : A} {xs ys : List A} → xs ≤ᴸ ys → (x ∷ xs) ≤ᴸ (y ∷ ys)
 
 infix 4 _≤ᴸ_
 
@@ -410,10 +420,12 @@ infix 4 _≤ᴸ_
 -}
 
 length-≤ᴸ-≦ : {A : Set} {xs ys : List A} → xs ≤ᴸ ys → length xs ≤ length ys
-length-≤ᴸ-≦ p = {!!}
+length-≤ᴸ-≦ e≤ᴸys = z≤n
+length-≤ᴸ-≦ (xs≤ᴸys p)= s≤s (length-≤ᴸ-≦ p)
 
 length-≤-≦ᴸ : {A : Set} (xs ys : List A) → length xs ≤ length ys → xs ≤ᴸ ys
-length-≤-≦ᴸ xs ys p = {!!}
+length-≤-≦ᴸ [] ys z≤n = e≤ᴸys
+length-≤-≦ᴸ (x ∷ xs) (y ∷ ys) (s≤s p) = xs≤ᴸys (length-≤-≦ᴸ xs ys p)
 
 
 -----------------
@@ -431,3 +443,10 @@ length-≤-≦ᴸ xs ys p = {!!}
    - show that `from` takes even numbers to even numbers
 -}
   
+_+₂_ : Bin → Bin → Bin
+⟨⟩ +₂ b = b
+b +₂ ⟨⟩ = b
+(b1 O) +₂ (b2 O) = (b1 +₂ b2) O
+(b1 O) +₂ (b2 I) = (b1 +₂ b2) I
+(b1 I) +₂ (b2 O) = (b1 +₂ b2) I
+(b1 I) +₂ (b2 I) = b-incr (b1 +₂ b2) O
