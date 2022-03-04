@@ -68,7 +68,8 @@ postulate fun-ext : ∀ {a b} → Extensionality a b
 -}
 
 take-n : {A : Set} {n m : ℕ} → Vec A (n + m) → Vec A n
-take-n xs = {!!}
+take-n {n = zero} xs = []
+take-n {n = suc n} (x ∷ xs) = x ∷ (take-n xs)
 
 {-
    Now define a function that extracts the first `n` elements from a
@@ -82,7 +83,7 @@ take-n xs = {!!}
 -}
 
 take-n' : {A : Set} {n m : ℕ} → Vec A (m + n) → Vec A n
-take-n' xs = {!!}
+take-n' {A} {n} {m} xs = take-n (subst (Vec A) (+-comm m n) xs)
 
 
 ----------------
@@ -117,7 +118,10 @@ list-vec (x ∷ xs) = x ∷ list-vec xs
 list-vec-list : {A : Set}
               → vec-list ∘ list-vec ≡ id {A = List A}
 
-list-vec-list = {!!}
+list-vec-list {A} = fun-ext list-vec-list-aux
+   where
+      list-vec-list-aux =  {!  (xs : List A) → list-vec (vec-list xs) ≡ xs !}
+      
 
 {-
    Note: The dual lemma, showing that `list-vec` is the left inverse
@@ -155,7 +159,11 @@ lookup-total-Σ : {A : Set} {n : ℕ}
                → i < n
                → Σ[ x ∈ A ] (lookup xs i ≡ just x)
 
-lookup-total-Σ xs i p = {!!}
+lookup-total-Σ (x ∷ xs) zero p    = x , refl
+lookup-total-Σ xs (suc i) p = {!  lookup-total-Σ xs i (suc-i-<-then-i-< i p) !} 
+   where
+      suc-i-<-then-i-< : {n : ℕ} → (i : ℕ) → suc i < n → i < n
+      suc-i-<-then-i-< = {!   !}
 
 
 ----------------
@@ -250,7 +258,11 @@ open _≃_
           ≃
           Σ[ xy ∈ Σ[ x ∈ A ] (B x) ] (C (proj₁ xy) (proj₂ xy))
         
-Σ-assoc = {!!}
+Σ-assoc = record 
+   { to = λ { (x , (y , z)) → (x , y) , z} 
+   ; from = λ { ((x , y) , z) → x , (y , z)}
+   ; from∘to = λ xyz → refl 
+   ; to∘from = λ xyz → refl }
 
 {-
    Second, prove the same thing using copatterns. For a reference on copatterns,
@@ -262,7 +274,10 @@ open _≃_
           ≃
           Σ[ xy ∈ Σ[ x ∈ A ] (B x) ] (C (proj₁ xy) (proj₂ xy))
 
-Σ-assoc' = {!!}
+to Σ-assoc' (x , (y , z)) = (x , y) , z
+from Σ-assoc' ((x , y) , z) = x , (y , z)
+from∘to Σ-assoc' xyz = refl 
+to∘from Σ-assoc' xyz = refl
 
 
 ----------------
@@ -277,7 +292,21 @@ open _≃_
 -}
 
 ≃-List : {A B : Set} → A ≃ B → List A ≃ List B
-≃-List = {!!}
+≃-List iso = record 
+   { to = map (to iso) 
+   ; from = map (from iso) 
+   ; from∘to = λ xs → 
+      begin
+         map (from p) (map (to p) xs)
+      =⟨ sym (map-compose xs) ⟩
+         map ((from p) ∘ (to p)) xs
+      =⟨ ? ⟩
+         map id xs
+      =⟨ map-id xs ⟩
+         xs
+      ∎ 
+   ; to∘from = {!   !} 
+   }
 
 
 ----------------
