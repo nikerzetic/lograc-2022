@@ -145,7 +145,7 @@ data Maybe (A : Set) : Set where
 lookup : {A : Set} {n : ℕ} → Vec A n → ℕ → Maybe A
 lookup [] i = nothing
 lookup (x ∷ xs) zero = just x
-lookup (x ∷ xs) suc i = lookup xs i
+lookup (x ∷ xs) (suc i) = lookup xs i
 
 
 ----------------
@@ -183,7 +183,20 @@ lookup-totalᵀ : {n : ℕ}
               → i < n                           -- `i` in `{0,1,...,n-1}`
               → lookup xs i ≡ just ⋆
              
-lookup-totalᵀ xs i p = {!!}
+lookup-totalᵀ (⋆ ∷ xs) zero (s≤s p) = 
+   begin
+      lookup (⋆ ∷ xs) zero 
+      ≡⟨⟩
+      just ⋆
+   ∎
+lookup-totalᵀ (⋆ ∷ xs) (suc i) (s≤s p) = 
+   begin
+      lookup (⋆ ∷ xs) (suc i)
+   ≡⟨⟩
+      lookup xs i
+   ≡⟨ lookup-totalᵀ xs i p ⟩
+      just ⋆
+   ∎
 
 {-
    Note: In the standard library, `⊤` is defined as a record type. Here
@@ -222,7 +235,8 @@ data Fin : ℕ → Set where
   suc  : {n : ℕ} (i : Fin n) → Fin (suc n)
 
 safe-lookup : {A : Set} {n : ℕ} → Vec A n → Fin n → A
-safe-lookup xs i = {!!}
+safe-lookup (x ∷ xs) zero = x
+safe-lookup (x ∷ xs) (suc i) = safe-lookup xs i
 
 
 ----------------
@@ -242,8 +256,9 @@ safe-lookup xs i = {!!}
    the correct type, the yellow highlighting below will disappear.
 -}
 
-nat-to-fin : {!!}
-nat-to-fin = {!!}
+nat-to-fin : {m : ℕ} → (n : ℕ) → n < m → Fin m
+nat-to-fin zero (s≤s p) = zero
+nat-to-fin (suc n) (s≤s p) = suc (nat-to-fin n p)
 
 lookup-correct : {A : Set} {n : ℕ}
                → (xs : Vec A n)
@@ -251,7 +266,22 @@ lookup-correct : {A : Set} {n : ℕ}
                → (p : i < n)
                → lookup xs i ≡ just (safe-lookup xs (nat-to-fin i p))
 
-lookup-correct x i p = {!!}
+lookup-correct (x ∷ xs) zero (s≤s p) =
+   begin
+      lookup (x ∷ xs) zero
+   ≡⟨⟩ 
+      just (safe-lookup (x ∷ xs) (nat-to-fin zero (s≤s p)))
+   ∎
+lookup-correct (x ∷ xs) (suc i) (s≤s p) = 
+   begin
+      lookup (x ∷ xs) (suc i)
+   ≡⟨⟩
+      lookup xs i
+   ≡⟨ lookup-correct xs i p ⟩
+      just (safe-lookup xs (nat-to-fin i p))
+   ≡⟨⟩ 
+      just (safe-lookup (x ∷ xs) (nat-to-fin (suc i) (s≤s p)))
+   ∎
 
 
 ----------------
@@ -263,8 +293,8 @@ lookup-correct x i p = {!!}
    vector of length `n + m`.
 -}
 
-take-n : {A : Set} {n m : ℕ} → Vec A (n + m) → Vec A n
-take-n xs = {!!}
+-- take-n : {A : Set} {n m : ℕ} → Vec A (n + m) → Vec A n
+-- take-n xs = {!!}
 
 
 ----------------
@@ -277,8 +307,8 @@ take-n xs = {!!}
    by recursion. Use `take-n` and equational reasoning instead.
 -}
 
-take-n' : {A : Set} {n m : ℕ} → Vec A (m + n) → Vec A n
-take-n' xs = {!!}
+-- take-n' : {A : Set} {n m : ℕ} → Vec A (m + n) → Vec A n
+-- take-n' xs = {!!}
 
 
 ----------------
@@ -291,7 +321,8 @@ take-n' xs = {!!}
 -}
 
 vec-list : {A : Set} {n : ℕ} → Vec A n → List A
-vec-list xs = {!!}
+vec-list [] = []
+vec-list (x ∷ xs) = x ∷ vec-list xs
 
 {-
    Define a function from lists to vectors that is identity on the
@@ -301,8 +332,9 @@ vec-list xs = {!!}
    natural number specifying the length of the returned vector.
 -}
 
-list-vec : {A : Set} → (xs : List A) → Vec A {!!}
-list-vec xs = {!!}
+list-vec : {A : Set} → (xs : List A) → Vec A (length xs)
+list-vec [] = []
+list-vec (x ∷ xs) = x ∷ list-vec xs
 
 
 ----------------
@@ -318,7 +350,15 @@ vec-list-length : {A : Set} {n : ℕ}
                 → (xs : Vec A n)
                 → n ≡ length (vec-list xs)
                 
-vec-list-length xs = {!!}
+vec-list-length [] = refl
+vec-list-length {n = suc n} (x ∷ xs) = 
+   begin
+      suc n
+   ≡⟨ cong suc (vec-list-length xs) ⟩
+      suc (length (vec-list xs))
+   ≡⟨⟩
+      length (vec-list (x ∷ xs))
+   ∎
 
 
 ----------------
@@ -347,8 +387,13 @@ Matrix A m n = Vec (Vec A n) m
    of two vectors of the same length.
 -}
 
+_+ⱽ_ : {n : ℕ} → Vec ℕ n → Vec ℕ n → Vec ℕ n
+[] +ⱽ [] = []
+(x ∷ xs) +ⱽ (y ∷ ys) = (x + y) ∷ (xs +ⱽ ys)
+
 _+ᴹ_ : {m n : ℕ} → Matrix ℕ m n → Matrix ℕ m n → Matrix ℕ m n
-xss +ᴹ yss = {!!}
+[] +ᴹ [] = []
+(xs ∷ xss) +ᴹ (ys ∷ yss) = (xs +ⱽ ys) ∷ (xss +ᴹ yss)
 
 
 -----------------------------
@@ -373,10 +418,10 @@ xss +ᴹ yss = {!!}
    Observe that you have to prove equality between functions.
 -}
 
-list-vec-list : {A : Set}
-              → vec-list ∘ list-vec ≡ id {A = List A}
+-- list-vec-list : {A : Set}
+--               → vec-list ∘ list-vec ≡ id {A = List A}
               
-list-vec-list = {!!}
+-- list-vec-list = {!!}
 
 
 -----------------
