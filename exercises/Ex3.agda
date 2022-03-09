@@ -120,7 +120,26 @@ list-vec-list : {A : Set}
 
 list-vec-list {A} = fun-ext list-vec-list-aux
    where
-      list-vec-list-aux =  {!  (xs : List A) → list-vec (vec-list xs) ≡ xs !}
+      list-vec-list-aux : (xs : List A) → vec-list (list-vec xs) ≡ xs 
+
+      list-vec-list-aux [] = 
+         begin
+            vec-list (list-vec [])
+         ≡⟨⟩
+            vec-list []
+         ≡⟨⟩
+            []
+         ∎
+      list-vec-list-aux (x ∷ xs) =
+         begin
+            vec-list (list-vec (x ∷ xs))
+         ≡⟨⟩
+            vec-list (x ∷ list-vec xs)
+         ≡⟨⟩
+            x ∷ (vec-list (list-vec xs))
+         ≡⟨ cong (x ∷_ ) (list-vec-list-aux xs) ⟩ 
+            x ∷ xs
+         ∎
       
 
 {-
@@ -159,11 +178,8 @@ lookup-total-Σ : {A : Set} {n : ℕ}
                → i < n
                → Σ[ x ∈ A ] (lookup xs i ≡ just x)
 
-lookup-total-Σ (x ∷ xs) zero p    = x , refl
-lookup-total-Σ xs (suc i) p = {!  lookup-total-Σ xs i (suc-i-<-then-i-< i p) !} 
-   where
-      suc-i-<-then-i-< : {n : ℕ} → (i : ℕ) → suc i < n → i < n
-      suc-i-<-then-i-< = {!   !}
+lookup-total-Σ (x ∷ xs) zero (s≤s p)    = x , refl
+lookup-total-Σ (x ∷ xs) (suc i) (s≤s p) = lookup-total-Σ xs i p
 
 
 ----------------
@@ -181,7 +197,8 @@ lookup-total-Σ xs (suc i) p = {!  lookup-total-Σ xs i (suc-i-<-then-i-< i p) !
 -}
 
 vec-list-Σ : {A : Set} {n : ℕ} → Vec A n → Σ[ xs ∈ List A ] (length xs ≡ n)
-vec-list-Σ xs = {!!}
+vec-list-Σ [] = {!   !}
+vec-list-Σ (x ∷ xs) = {!   !}
 
 
 ----------------
@@ -291,22 +308,22 @@ to∘from Σ-assoc' xyz = refl
    together with the lemmas we imported from `Data.List.Properties`.
 -}
 
-≃-List : {A B : Set} → A ≃ B → List A ≃ List B
-≃-List iso = record 
-   { to = map (to iso) 
-   ; from = map (from iso) 
-   ; from∘to = λ xs → 
-      begin
-         map (from p) (map (to p) xs)
-      =⟨ sym (map-compose xs) ⟩
-         map ((from p) ∘ (to p)) xs
-      =⟨ ? ⟩
-         map id xs
-      =⟨ map-id xs ⟩
-         xs
-      ∎ 
-   ; to∘from = {!   !} 
-   }
+-- ≃-List : {A B : Set} → A ≃ B → List A ≃ List B
+-- ≃-List iso = record 
+--    { to = map (to iso) 
+--    ; from = map (from iso) 
+--    ; from∘to = λ xs → 
+--       begin
+--          map (from p) (map (to p) xs)
+--       =⟨ sym (map-compose xs) ⟩
+--          map ((from p) ∘ (to p)) xs
+--       =⟨ ? ⟩
+--          map id xs
+--       =⟨ map-id xs ⟩
+--          xs
+--       ∎ 
+--    ; to∘from = {!   !} 
+--    }
 
 
 ----------------
