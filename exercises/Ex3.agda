@@ -197,8 +197,9 @@ lookup-total-Σ (x ∷ xs) (suc i) (s≤s p) = lookup-total-Σ xs i p
 -}
 
 vec-list-Σ : {A : Set} {n : ℕ} → Vec A n → Σ[ xs ∈ List A ] (length xs ≡ n)
-vec-list-Σ [] = {!   !}
-vec-list-Σ (x ∷ xs) = {!   !}
+vec-list-Σ [] = [] , refl
+vec-list-Σ (x ∷ xs) with vec-list-Σ xs
+... | xs' , p = x ∷ xs' , cong suc p
 
 
 ----------------
@@ -224,7 +225,25 @@ list-ext : {A : Set} {xs ys : List A}
               → safe-list-lookup xs i p ≡ safe-list-lookup ys i q)
          → xs ≡ ys
 
-list-ext = {!!}
+list-ext {xs = []} {ys = []} p q = 
+   begin
+      []
+   ≡⟨⟩
+      []
+   ∎
+list-ext {xs = x ∷ xs} {ys = y ∷ ys} p q =
+   begin
+      x ∷ xs
+   ≡⟨ cong (_∷ xs) (q zero (s≤s z≤n) (s≤s z≤n)) ⟩
+      y ∷ xs
+   ≡⟨ cong (y ∷_) 
+      (list-ext (suc-inj p) (λ i p' q' → q (suc i) (s≤s p') (s≤s q'))) ⟩
+      y ∷ ys
+   ∎
+
+      where 
+         suc-inj : {n m : ℕ} → _≡_ {A = ℕ} (suc n) (suc m) → n ≡ m
+         suc-inj refl = refl
 
 {-
    Notice that we have generalised this statement a bit compared
@@ -279,7 +298,8 @@ open _≃_
    { to = λ { (x , (y , z)) → (x , y) , z} 
    ; from = λ { ((x , y) , z) → x , (y , z)}
    ; from∘to = λ xyz → refl 
-   ; to∘from = λ xyz → refl }
+   ; to∘from = λ xyz → refl 
+   }
 
 {-
    Second, prove the same thing using copatterns. For a reference on copatterns,
@@ -308,22 +328,30 @@ to∘from Σ-assoc' xyz = refl
    together with the lemmas we imported from `Data.List.Properties`.
 -}
 
--- ≃-List : {A B : Set} → A ≃ B → List A ≃ List B
--- ≃-List iso = record 
---    { to = map (to iso) 
---    ; from = map (from iso) 
---    ; from∘to = λ xs → 
---       begin
---          map (from p) (map (to p) xs)
---       =⟨ sym (map-compose xs) ⟩
---          map ((from p) ∘ (to p)) xs
---       =⟨ ? ⟩
---          map id xs
---       =⟨ map-id xs ⟩
---          xs
---       ∎ 
---    ; to∘from = {!   !} 
---    }
+≃-List : {A B : Set} → A ≃ B → List A ≃ List B
+
+to (≃-List p) = map (to p)
+from (≃-List p) = map (from p)
+from∘to (≃-List p) = λ xs →
+  begin
+    map (from p) (map (to p) xs)
+  ≡⟨ sym (map-compose xs) ⟩
+    map ((from p) ∘ (to p)) xs
+  ≡⟨ cong (λ f → map f xs) (fun-ext (from∘to p)) ⟩
+    map id xs
+  ≡⟨ map-id xs ⟩
+    xs
+  ∎
+to∘from (≃-List p) = λ xs →
+   begin
+      map (to p) (map (from p) xs)
+   ≡⟨ sym (map-compose xs) ⟩
+      map ((to p) ∘ (from p)) xs
+   ≡⟨ cong (λ f → map f xs) (fun-ext (to∘from p)) ⟩
+      map id xs
+   ≡⟨ map-id xs ⟩
+      xs
+   ∎
 
 
 ----------------
@@ -351,7 +379,23 @@ open DecSet
 -}
 
 DecList : (DS : DecSet) → Σ[ DS' ∈ DecSet ] (DSet DS' ≡ List (DSet DS))
-DecList DS = {!!}
+
+DecList DS = record 
+   {DSet = List (DSet DS)
+   ; test-≡ = test-≡-list
+   } , refl
+
+   where
+
+      test-≡-list : (xs ys : List (DSet DS)) → Dec (xs ≡ ys)
+      test-≡-list [] [] = yes refl
+      test-≡-list [] (x ∷ ys) = no λ ()
+      test-≡-list (x ∷ xs) [] = no λ ()
+      test-≡-list (x ∷ xs) (y ∷ ys) with (test-≡ DS) x y
+      test-≡-list (x ∷ xs) (y ∷ ys) | yes refl with test-≡-list xs ys
+      ... | yes refl = yes refl
+      ... | no  q    = no (λ { refl → q refl })
+      test-≡-list (x ∷ xs) (y ∷ ys) | no  p = no (λ { refl → p refl })
 
 
 ----------------
