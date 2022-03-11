@@ -138,7 +138,7 @@ list-vec-list {A} = fun-ext list-vec-list-aux
 
 
 ----------------
--- Exercise 3 --
+-- Exercise 3 --  
 ----------------
 
 {-

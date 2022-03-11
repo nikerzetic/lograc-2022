@@ -465,20 +465,21 @@ data _∈_ {A : Set} : A → List A → Set where
   ∈-there : {x y : A} {xs : List A} → x ∈ xs → x ∈ (y ∷ xs)
 
 data NoDup {A : Set} : List A → Set where
-  {- EXERCISE: replace this comment with constructors for `NoDup` -}
+  []-nodup : NoDup []
+  ∷-nodup : {x : A} {xs : List A} → NoDup xs → ¬ (x ∈ xs) → NoDup (x ∷ xs)
 
 {-
    Next, prove some sanity-checks about the correctness of `NoDup`.
 -}
 
 nodup-test₁ : NoDup {ℕ} []
-nodup-test₁ = {!!}
+nodup-test₁ = []-nodup
 
 nodup-test₂ : NoDup (4 ∷ 2 ∷ [])
-nodup-test₂ = {!!}
+nodup-test₂ = ∷-nodup (∷-nodup []-nodup λ { () }) λ { (∈-there ()) }
 
 nodup-test₃ : ¬ (NoDup (4 ∷ 2 ∷ 4 ∷ []))
-nodup-test₃ = {!!}
+nodup-test₃ (∷-nodup xs p) = p (∈-there ∈-here)
 
 {-
    Finally, prove that `add` preserves the no-duplicates property.
