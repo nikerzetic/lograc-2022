@@ -104,17 +104,33 @@ record Dictionary {l₁ l₂ l₃ : Level}
        https://agda.readthedocs.io/en/v2.5.2/language/with-abstraction.html#the-inspect-idiom
   -}
 
-  lkp-add-if-new-nothing : (k : Keys) (x : A) (d : Dict)
-                         → lkp d k ≡ nothing
-                         → lkp (add-if-new d (k , x)) k ≡ just x
+  -- lkp-add-if-new-nothing : (k : Keys) (x : A) (d : Dict)
+  --                        → lkp d k ≡ nothing
+  --                        → lkp (add-if-new d (k , x)) k ≡ just x
                          
-  lkp-add-if-new-nothing k x d p = {!!}
+  -- lkp-add-if-new-nothing k x d p with lkp d k | inspect (λ (d , k) → lkp d k) (d , k)
+  -- ... | nothing | [ p ] =
+  --   begin
+  --     lkp ((add-if-new d (k , x)) k)
+  --   ≡⟨ p ⟩
+  --     lkp (add d (k , x))
+  --   ≡⟨ lkp-add-≡ ⟩
+  --     just x
+  --   ∎
 
   lkp-add-if-new-just : (k : Keys) (x x' : A) (d : Dict)
                       → lkp d k ≡ just x'
                       → lkp (add-if-new d (k , x)) k ≡ just x'
                       
-  lkp-add-if-new-just k x x' d p = {!!}
+  lkp-add-if-new-just k x x' d p with lkp d k | inspect (λ (d , k) → lkp d k) (d , k)
+  ... | just x'' | [ eq ] = 
+    begin
+      lkp d k 
+    ≡⟨ eq ⟩
+      just x''
+    ≡⟨ p ⟩
+      just x'
+    ∎
 
 
 ----------------
@@ -139,12 +155,32 @@ module _ {l₁ l₂} (K : Key {l₁}) (A : Set l₂) where
   ListDict : Dictionary K A
   ListDict = record {
     Dict      = List (Keys × A) ;
-    emp       = {!!} ;
-    lkp       = {!!} ;
-    add       = {!!} ;
+    emp       = [] ;
+    lkp       = lkp-aux ;
+    add       = add-aux ;
     lkp-emp   = {!!} ;
-    lkp-add-≡ = {!!} ;
+    lkp-add-≡ = lkp-add-≡-aux ;
     lkp-add-≢ = {!!} }
+
+    where 
+
+      lkp-aux : List (Keys × A) → Keys → Maybe A
+      lkp-aux [] k = nothing
+      lkp-aux ((k' , x') ∷ d) k with test-keys k k'
+      ... | yes p = just x'
+      ... | no p  = lkp-aux d k
+
+      add-aux : List (Keys × A) → Keys × A → List (Keys × A)
+      add-aux [] (k , x) = (k , x) ∷ []
+      add-aux ((k' , x') ∷ d) (k , x) with test-keys k k'
+      ... | yes p = (k' , x) ∷ d
+      ... | no p  = add-aux d (k , x)
+
+      lkp-add-≡-aux : (k : Keys) (x : A) (d : List (Keys × A)) → lkp-aux (add-aux d (k , x)) k ≡ just x
+      lkp-add-≡-aux k x [] = {!   !}
+      lkp-add-≡-aux k x ((k' , x') ∷ d) with test-keys k k'
+      ... | yes p = {!   !}
+      ... | no p  = lkp-add-≡-aux k x d
 
 
 ----------------
@@ -225,3 +261,4 @@ record Dictionary'' {l₁ l₂ l₃ : Level}
    order-theoretic properties to be able to define a new variant of
    the `add` operation that satisfies the `add-add-≢` property.
 -}
+  
