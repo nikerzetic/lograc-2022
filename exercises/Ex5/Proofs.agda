@@ -49,12 +49,20 @@ open module ND = Ex5.NaturalDeduction AtomicFormula
 ⇒-contravariant : (φ ψ ξ : Formula)
                 → [] ⊢ (φ ⇒ ψ) ⇒ (ψ ⇒ ξ) ⇒ φ ⇒ ξ
            
-⇒-contravariant φ ψ ξ = {!!}
+⇒-contravariant φ ψ ξ = 
+   ⇒-intro (
+      ⇒-intro (
+         ⇒-intro (
+            ⇒-elim (hyp (ψ ⇒ ξ)) (⇒-elim (hyp (φ ⇒ ψ)) (hyp φ)))))
 
 ⇒-covariant : (φ ψ ξ : Formula)
             → [] ⊢ (φ ⇒ ψ) ⇒ (ξ ⇒ φ) ⇒ ξ ⇒ ψ
             
-⇒-covariant φ ψ ξ = {!!}
+⇒-covariant φ ψ ξ = 
+   ⇒-intro (
+      ⇒-intro (
+         ⇒-intro (
+            ⇒-elim (hyp  (φ ⇒ ψ)) (⇒-elim (hyp (ξ ⇒ φ)) (hyp ξ)))))
 
 {-
    Next, show that `⇒` and `∧` form an adjunction.
